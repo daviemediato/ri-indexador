@@ -184,7 +184,7 @@ class FileIndex(Index):
         return self.dic_index[term].term_id
 
     def create_index_entry(self, term_id: int) -> TermFilePosition:
-        return None
+        return TermFilePosition(term_id)
 
     def add_index_occur(self, entry_dic_index: TermFilePosition, doc_id: int,
                         term_id: int, term_freq: int):
@@ -310,7 +310,21 @@ class FileIndex(Index):
             # apropriadamente        
 
     def get_occurrence_list(self, term: str) -> List:
-        return []
+        occurrence_list = []
+        
+        if(term in self.vocabulary):
+            start_pos = self.dic_index[term].term_file_start_pos
+            term_id = self.dic_index[term].term_id
+
+            with open (self.str_idx_file_name, "rb") as index_file:
+                index_file.seek(start_pos)
+            
+                occur = self.next_from_file(index_file)
+                while(occur is not None and occur.term_id == term_id):
+                    occurrence_list.append(occur)
+                    occur = self.next_from_file(index_file)
+
+        return occurrence_list
 
     def document_count_with_term(self, term: str) -> int:
-        return 0
+        return self.dic_index[term].doc_count_with_term if term in self.dic_index else 0
