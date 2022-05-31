@@ -93,7 +93,9 @@ class TermOccurrence:
         self.term_freq = term_freq
 
     def write(self, idx_file):
-        pass
+        idx_file.write(self.doc_id.to_bytes(4, byteorder="big"))
+        idx_file.write(self.term_id.to_bytes(4, byteorder="big"))
+        idx_file.write(self.term_freq.to_bytes(4, byteorder="big"))
 
     def __hash__(self):
         return hash((self.doc_id, self.term_id))
@@ -107,8 +109,10 @@ class TermOccurrence:
 
     def __lt__(self, other_occurrence: "TermOccurrence"):
         try:
-            return (self.term_id, self.doc_id) < (other_occurrence.term_id,
-                                                  other_occurrence.doc_id)
+            if self.term_id == other_occurrence.term_id:
+                return self.doc_id < other_occurrence.doc_id
+            else:
+                return self.term_id < other_occurrence.term_id
         except:
             return False
 
@@ -186,27 +190,46 @@ class FileIndex(Index):
                         term_id: int, term_freq: int):
         #complete aqui adicionando um novo TermOccurrence na lista lst_occurrences_tmp
         #não esqueça de atualizar a(s) variável(is) auxiliares apropriadamente
-
-        if None:
+        if self.idx_tmp_occur_last_element + 1 > FileIndex.TMP_OCCURRENCES_LIMIT:
             self.save_tmp_occurrences()
+        else:
+            self.lst_occurrences_tmp[self.idx_tmp_occur_last_element +
+                                     1] = TermOccurrence(
+                                         doc_id, term_id, term_freq)
+            self.idx_tmp_occur_last_element += 1
+
+    def get_tmp_occur_size(self) -> int:
+        return self.idx_tmp_occur_last_element - self.idx_tmp_occur_first_element + 1
 
     def next_from_list(self) -> TermOccurrence:
         if self.get_tmp_occur_size() > 0:
             # obtenha o proximo da lista e armazene em nex_occur
             # não esqueça de atualizar a(s) variável(is) auxiliares apropriadamente
+            next_occur = self.lst_occurrences_tmp[
+                self.idx_tmp_occur_first_element]
+            self.lst_occurrences_tmp[self.idx_tmp_occur_first_element] = None
+            self.idx_tmp_occur_first_element += 1
 
             return next_occur
         else:
             return None
 
     def next_from_file(self, file_pointer) -> TermOccurrence:
-        # next_from_file = pickle.load(file_idx)
-        bytes_doc_id = file_pointer.read(4)
-        if not bytes_doc_id:
-            return None
-            # seu código aqui :)
+        try:
+            bytes_doc_id = file_pointer.read(4)
+            bytes_term_id = file_pointer.read(4)
+            bytes_term_freq = file_pointer.read(4)
 
-        return TermOccurrence(doc_id, term_id, term_freq)
+            if not bytes_doc_id or not bytes_term_id or not bytes_term_freq:
+                return None
+            else:
+                doc_id = int.from_bytes(bytes_doc_id, byteorder='big')
+                term_id = int.from_bytes(bytes_term_id, byteorder='big')
+                term_freq = int.from_bytes(bytes_term_freq, byteorder='big')
+
+                return TermOccurrence(doc_id, term_id, term_freq)
+        except:
+            return None
 
     def save_tmp_occurrences(self):
 
@@ -216,6 +239,33 @@ class FileIndex(Index):
         """comparar sempre a primeira posição
         da lista com a primeira posição do arquivo usando os métodos next_from_list e next_from_file
         e use o método write do TermOccurrence para armazenar cada ocorrencia do novo índice ordenado"""
+        # self.lst_occurrences_tmp[self.idx_tmp_occur_first_element:self.
+        #                          idx_tmp_occur_last_element] = sorted(
+        #                              self.lst_occurrences_tmp[
+        #                                  self.idx_tmp_occur_first_element:self.
+        #                                  idx_tmp_occur_last_element])
+        # self.lst_occurrences_tmp[self.idx_tmp_occur_first_element:self.
+        #                          idx_tmp_occur_last_element].sort()
+        # self.lst_occurrences_tmp[self.idx_tmp_occur_first_element:self.
+        #                          idx_tmp_occur_last_element].reverse()
+        # print(self.lst_occurrences_tmp[self.idx_tmp_occur_first_element:self.
+        #                                idx_tmp_occur_last_element])
+        self.str_idx_file_name = f"occur_index_{self.idx_file_counter}"
+        with open(self.str_idx_file_name, 'wb') as file_pointer:
+            while self.get_tmp_occur_size() > 0:
+                occur_list = self.next_from_list()
+                occur_file = self.next_from_file(file_pointer)
+
+                if occur_file is not None:
+                    if occur_list > occur_file:
+                        occur_list.write(file_pointer)
+                    else:
+                        occur_file.write(file_pointer)
+                else:
+                    occur_list.write(file_pointer)
+
+        self.idx_file_counter += 1
+        self.lst_occurrences_tmp = [None] * FileIndex.TMP_OCCURRENCES_LIMIT
 
         gc.enable()
 
