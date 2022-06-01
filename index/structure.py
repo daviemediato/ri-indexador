@@ -63,14 +63,18 @@ class Index:
         )
 
     def finish_indexing(self):
+
         pass
 
     def write(self, arq_index: str):
-        pass
+        with open(arq_index, 'wb') as idx_file:
+            pickle.dump(self, idx_file)
+
 
     @staticmethod
     def read(arq_index: str):
-        pass
+        with open(arq_index, 'rb') as idx_file:
+            return pickle.load(idx_file)
 
     def __str__(self):
         arr_index = []
@@ -190,13 +194,15 @@ class FileIndex(Index):
                         term_id: int, term_freq: int):
         # complete aqui adicionando um novo TermOccurrence na lista lst_occurrences_tmp
         # não esqueça de atualizar a(s) variável(is) auxiliares apropriadamente
-        if self.idx_tmp_occur_last_element + 1 > FileIndex.TMP_OCCURRENCES_LIMIT:
+        if self.idx_tmp_occur_last_element + 1 >= FileIndex.TMP_OCCURRENCES_LIMIT:
             self.save_tmp_occurrences()
         else:
             self.lst_occurrences_tmp[self.idx_tmp_occur_last_element +
                                      1] = TermOccurrence(
                                          doc_id, term_id, term_freq)
             self.idx_tmp_occur_last_element += 1
+        
+        self.set_documents.add(doc_id)
 
     def get_tmp_occur_size(self) -> int:
         return self.idx_tmp_occur_last_element - self.idx_tmp_occur_first_element + 1
@@ -274,6 +280,7 @@ class FileIndex(Index):
 
         self.idx_file_counter += 1
         self.str_idx_file_name = self.new_file_name
+        #Delete old file
 
         self.lst_occurrences_tmp = [None] * FileIndex.TMP_OCCURRENCES_LIMIT
         self.idx_tmp_occur_last_element = -1
@@ -284,7 +291,6 @@ class FileIndex(Index):
     def finish_indexing(self):
         if len(self.lst_occurrences_tmp) > 0:
             self.save_tmp_occurrences()
-
         # Sugestão: faça a navegação e obetenha um mapeamento
         # id_termo -> obj_termo armazene-o em dic_ids_por_termo
         # obj_termo é a instancia TermFilePosition correspondente ao id_termo
@@ -327,4 +333,5 @@ class FileIndex(Index):
         return occurrence_list
 
     def document_count_with_term(self, term: str) -> int:
+        # print("dic_index", self.dic_index)
         return self.dic_index[term].doc_count_with_term if term in self.dic_index else 0
