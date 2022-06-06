@@ -15,7 +15,7 @@ class Cleaner:
         in_table = "áéíóúâêôçãẽõü"
         out_table = "aeiouaeocaeou"
         # altere a linha abaixo para remoção de acentos (Atividade 11)
-        self.accents_translation_table = None
+        self.accents_translation_table = dict(zip(list(in_table), list(out_table)))
         self.set_punctuation = set(string.punctuation)
 
         # flags
@@ -24,7 +24,7 @@ class Cleaner:
         self.perform_stemming = perform_stemming
 
     def html_to_plain_text(self, html_doc: str) -> str:
-        return None
+        return BeautifulSoup(html_doc, "html.parser").get_text()
 
     @staticmethod
     def read_stop_words(str_file) -> set:
@@ -36,19 +36,34 @@ class Cleaner:
         return set_stop_words
 
     def is_stop_word(self, term: str):
-        return True
+        return term in self.set_stop_words
 
     def word_stem(self, term: str):
-        return ""
+        return self.stemmer.stem(term)
 
     def remove_accents(self, term: str) -> str:
-        return None
+        new_term = ""
+        for char in list(term):
+            if(char in self.accents_translation_table.keys()):
+                char = self.accents_translation_table[char]
+            new_term += char
+
+        return new_term
 
     def preprocess_word(self, term: str) -> str or None:
-        return None
+        if(term in self.set_punctuation):
+            return None
+        if(self.perform_stop_words_removal and term in self.set_stop_words):
+            return None
+        if(self.perform_accents_removal):
+            term = self.remove_accents(term)
+        if(self.perform_stemming):
+            term = self.word_stem
+        return term
 
     def preprocess_text(self, text: str) -> str or None:
-        return None
+        return self.remove_accents(text.lower())
+
 class HTMLIndexer:
     cleaner = Cleaner(stop_words_file="stopwords.txt",
                       language="portuguese",
