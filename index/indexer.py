@@ -1,3 +1,4 @@
+from genericpath import isdir
 from nltk.stem.snowball import SnowballStemmer
 from bs4 import BeautifulSoup
 import string
@@ -98,4 +99,22 @@ class HTMLIndexer:
 
     def index_text_dir(self, path: str):
         for str_sub_dir in os.listdir(path):
-            path_sub_dir = f"{path}/{str_sub_dir}"
+            path_sub_dir = f"{path}/{str_sub_dir}"    
+            if(os.path.isdir(path_sub_dir)):
+                self.index_text_dir(path_sub_dir)
+            
+            elif(os.path.isfile(path_sub_dir) and str_sub_dir.endswith(".html")):
+                with open(path_sub_dir) as f:
+                    text_html = f.read()
+                    doc_id = os.path.basename(path_sub_dir)
+                    self.index_text(doc_id, text_html)
+                    # self.index_text()
+            
+                    
+            
+            
+
+        # get all .html files
+        # name of file is ID
+        # content of file is text_html
+
