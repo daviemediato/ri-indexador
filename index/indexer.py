@@ -95,7 +95,6 @@ class HTMLIndexer:
         for word, freq in dic_word_count.items():
             self.index.index(word, doc_id, freq)
         self.index.finish_indexing()
-        
 
     def index_text_dir(self, path: str):
         for str_sub_dir in os.listdir(path):
@@ -109,12 +108,3 @@ class HTMLIndexer:
                     doc_id = int(file_name.split('.')[0])
                     text_html = f.read()
                     self.index_text(doc_id, text_html)
-            
-                    
-            
-            
-
-        # get all .html files
-        # name of file is ID
-        # content of file is text_html
-
