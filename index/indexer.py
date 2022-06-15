@@ -51,6 +51,7 @@ class Cleaner:
         return new_term
 
     def preprocess_word(self, term: str) -> str or None:
+        term = term.lower()
         if(term in self.set_punctuation):
             return None
         if(self.perform_stop_words_removal and term in self.set_stop_words):
@@ -58,7 +59,7 @@ class Cleaner:
         if(self.perform_accents_removal):
             term = self.remove_accents(term)
         if(self.perform_stemming):
-            term = self.word_stem
+            term = self.word_stem(term)
         return term
 
     def preprocess_text(self, text: str) -> str or None:
@@ -76,11 +77,24 @@ class HTMLIndexer:
 
     def text_word_count(self, plain_text: str):
         dic_word_count = {}
-
+        list_of_words = word_tokenize(plain_text)
+        for word in list_of_words:
+            processed_word = self.cleaner.preprocess_word(word)
+            if processed_word is None:
+                continue
+            if processed_word in dic_word_count.keys():
+                dic_word_count[processed_word] += 1
+            else:
+                dic_word_count[processed_word] = 1
         return dic_word_count
 
     def index_text(self, doc_id: int, text_html: str):
-        pass
+        plain_text = self.cleaner.html_to_plain_text(text_html)
+        dic_word_count = self.text_word_count(plain_text)
+        for word, freq in dic_word_count.items():
+            self.index.index(word, doc_id, freq)
+        self.index.finish_indexing()
+        
 
     def index_text_dir(self, path: str):
         for str_sub_dir in os.listdir(path):
