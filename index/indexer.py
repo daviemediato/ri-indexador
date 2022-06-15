@@ -104,11 +104,11 @@ class HTMLIndexer:
                 self.index_text_dir(path_sub_dir)
             
             elif(os.path.isfile(path_sub_dir) and str_sub_dir.endswith(".html")):
-                with open(path_sub_dir) as f:
+                with open(path_sub_dir, encoding="utf-8") as f:
+                    file_name = os.path.basename(path_sub_dir)
+                    doc_id = int(file_name.split('.')[0])
                     text_html = f.read()
-                    doc_id = os.path.basename(path_sub_dir)
                     self.index_text(doc_id, text_html)
-                    # self.index_text()
             
                     
             
