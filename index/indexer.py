@@ -97,6 +97,8 @@ class HTMLIndexer:
         self.index.finish_indexing()
 
     def index_text_dir(self, path: str):
+        # from tqdm import tqdm
+        # for str_sub_dir in tqdm(os.listdir(path)):
         for str_sub_dir in os.listdir(path):
             path_sub_dir = f"{path}/{str_sub_dir}"    
             if(os.path.isdir(path_sub_dir)):

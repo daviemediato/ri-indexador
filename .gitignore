@@ -5,3 +5,5 @@ embeddings.txt
 *.idx
 .ipynb_checkpoints
 .idea
+ri-tp-wiki-data-master
+occur_index_*

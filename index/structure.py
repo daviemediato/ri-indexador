@@ -277,6 +277,7 @@ class FileIndex(Index):
         new_index_pointer.close()
         if(current_index_pointer):
             current_index_pointer.close()
+            os.remove(self.str_idx_file_name)
 
         self.idx_file_counter += 1
         self.str_idx_file_name = self.new_file_name
