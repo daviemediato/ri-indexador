@@ -8,6 +8,7 @@ if __name__ == "__main__":
                                   perform_accents_removal=True,
                                   perform_stemming=False)
 
-    obj_index = FileIndex()
+    obj_index = HashIndex()
     html_indexer = HTMLIndexer(obj_index)
-    html_indexer.index_text_dir("")
+    html_indexer.index_text_dir("./ri-tp-wiki-data-master")
+    html_indexer.index.write("wiki.idx")
