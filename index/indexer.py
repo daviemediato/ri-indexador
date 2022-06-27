@@ -7,16 +7,18 @@ import os
 
 
 class Cleaner:
+
     def __init__(self, stop_words_file: str, language: str,
-                 perform_stop_words_removal: bool, perform_accents_removal: bool,
-                 perform_stemming: bool):
+                 perform_stop_words_removal: bool,
+                 perform_accents_removal: bool, perform_stemming: bool):
         self.set_stop_words = self.read_stop_words(stop_words_file)
 
         self.stemmer = SnowballStemmer(language)
         in_table = "áéíóúâêôçãẽõü"
         out_table = "aeiouaeocaeou"
         # altere a linha abaixo para remoção de acentos (Atividade 11)
-        self.accents_translation_table = dict(zip(list(in_table), list(out_table)))
+        self.accents_translation_table = dict(
+            zip(list(in_table), list(out_table)))
         self.set_punctuation = set(string.punctuation)
 
         # flags
@@ -45,7 +47,7 @@ class Cleaner:
     def remove_accents(self, term: str) -> str:
         new_term = ""
         for char in list(term):
-            if(char in self.accents_translation_table.keys()):
+            if (char in self.accents_translation_table.keys()):
                 char = self.accents_translation_table[char]
             new_term += char
 
@@ -53,18 +55,19 @@ class Cleaner:
 
     def preprocess_word(self, term: str) -> str or None:
         term = term.lower()
-        if(term in self.set_punctuation):
+        if (term in self.set_punctuation):
             return None
-        if(self.perform_stop_words_removal and term in self.set_stop_words):
+        if (self.perform_stop_words_removal and term in self.set_stop_words):
             return None
-        if(self.perform_accents_removal):
+        if (self.perform_accents_removal):
             term = self.remove_accents(term)
-        if(self.perform_stemming):
+        if (self.perform_stemming):
             term = self.word_stem(term)
         return term
 
     def preprocess_text(self, text: str) -> str or None:
         return self.remove_accents(text.lower())
+
 
 class HTMLIndexer:
     cleaner = Cleaner(stop_words_file="stopwords.txt",
@@ -94,19 +97,21 @@ class HTMLIndexer:
         dic_word_count = self.text_word_count(plain_text)
         for word, freq in dic_word_count.items():
             self.index.index(word, doc_id, freq)
-        self.index.finish_indexing()
 
     def index_text_dir(self, path: str):
         # from tqdm import tqdm
         # for str_sub_dir in tqdm(os.listdir(path)):
         for str_sub_dir in os.listdir(path):
-            path_sub_dir = f"{path}/{str_sub_dir}"    
-            if(os.path.isdir(path_sub_dir)):
+            path_sub_dir = f"{path}/{str_sub_dir}"
+            if (os.path.isdir(path_sub_dir)):
                 self.index_text_dir(path_sub_dir)
-            
-            elif(os.path.isfile(path_sub_dir) and str_sub_dir.endswith(".html")):
+
+            elif (os.path.isfile(path_sub_dir)
+                  and str_sub_dir.endswith(".html")):
                 with open(path_sub_dir, encoding="utf-8") as f:
                     file_name = os.path.basename(path_sub_dir)
                     doc_id = int(file_name.split('.')[0])
                     text_html = f.read()
                     self.index_text(doc_id, text_html)
+
+        self.index.finish_indexing()
